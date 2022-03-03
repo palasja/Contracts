@@ -1,0 +1,43 @@
+﻿@inject IPayrollServices payrollService
+@if (displayDetail)
+{
+    @while (tmpPaymentsPayroll.Count > 0)
+    {
+        <tr class="table-info">
+            <td></td>
+            @foreach (var paymentType in paymentTypes)
+            {
+                PaymentDTO p = tmpPaymentsPayroll.Where(p => p.PaymentTypeId == paymentType.Id).FirstOrDefault();
+                @if (p != null)
+                {
+                    <td title="@p.Name">@p.Summ</td>
+                    tmpPaymentsPayroll.Remove(p);
+                }
+                else
+                {
+                    <td></td>
+                }
+            }
+            <td></td>
+        </tr>
+    }
+}
+
+
+@code {
+    [Parameter] public bool displayDetail { get; set; }
+    [Parameter] public ICollection<PaymentDTO> PaymentsPayroll { get; set; }
+    [Parameter] public EventCallback onShow { get; set; }
+    ICollection<PaymentTypeDTO> paymentTypes;
+    public ICollection<PaymentDTO> tmpPaymentsPayroll;
+
+    protected override void OnInitialized()
+    {
+        paymentTypes = payrollService.GetTypesPayment();
+
+    }
+    protected override void OnParametersSet()
+    {
+        tmpPaymentsPayroll = new List<PaymentDTO>(PaymentsPayroll);
+    }
+}

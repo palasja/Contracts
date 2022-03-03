@@ -1,0 +1,200 @@
+﻿@page "/Payroll/"
+@inject IPayrollServices payrollService
+@inject IContractsServiceRepository contractService
+
+@using System.IO
+@using Microsoft.AspNetCore.Mvc.RazorPages
+@using Microsoft.AspNetCore.Mvc
+<AuthorizeView>
+    <Authorized>
+        <div class="row">
+            <div class="col col-3">
+                <BlazorInputFile.InputFile OnChange="HandleFileStream" multiple></BlazorInputFile.InputFile>
+            </div>
+            <div class="col col-2">
+                <p>25% по договорам: @haveToPay р.</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col col-4">
+                <input type="date" @bind="@startFilter" />
+                <input type="date" @bind="@endFilter" />
+                <button type="button" @onclick="FilterChangedAsync" class="btn btn-primary">
+                    Применить
+                </button>
+            </div>
+            <div class="col col-3">
+                <select class="form-select form-select-sm w-100" @onchange="FiltredPaymentByName">
+                    <option>Все</option>
+                    @foreach (var paymentType in paymentTypes)
+                    {
+                        <option>@paymentType</option>
+                    }
+                </select>
+            </div>
+            </div>
+            @if (payrolls == null)
+            {
+                <p><em>Loading...</em></p>
+            }
+            else
+            {
+                @if (!showPaymentByType)
+                {
+                    <table class="table table-hover table-striped">
+                        <thead>
+                            <tr>
+                                <th>Период</th>
+                                <th>Начислено</th>
+                                <th>Удержано</th>
+                                <th>Натуральных</th>
+                                <th>Выплачено</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            <tr class="table-primary">
+                                <td>Сумма за период</td>
+                                <td>@(Math.Truncate(itog.Accrued * 100)/100)</td>
+                                <td>@(Math.Truncate(itog.Withheld * 100)/100)</td>
+                                <td>@(Math.Truncate(itog.Natural * 100)/100)</td>
+                                <td>@(Math.Truncate(itog.Paid * 100)/100)</td>
+                                <td></td>
+                            </tr>
+                            @foreach (var payroll in payrolls)
+                            {
+                                <tr style="cursor: pointer;" @onclick="() => payroll.isShowDetail = !payroll.isShowDetail">
+                                    <td>@payroll.Period.ToString("MM.yyyy")</td>
+                                    <td>@payroll.Accrued</td>
+                                    <td>@payroll.Withheld</td>
+                                    <td>@payroll.Natural</td>
+                                    <td>@payroll.Paid</td>
+                                    <td><a class="form-control btn" href="/download/PayrollById?id=@payroll.Id" @onclick:stopPropagation="true"><sapan class="oi oi-data-transfer-download"></sapan></a></td>
+                                </tr>
+                                <Payments @ref="payments" displayDetail="@payroll.isShowDetail" PaymentsPayroll="@payroll.Payments" />
+                            }
+
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <table class="table table-hover table-striped">
+                        <thead>
+                            <tr>
+                                <th>Период</th>
+                                <th>Ставки/проценты</th>
+                                <th>Дни</th>
+                                <th>Часы</th>
+                                <th>Сумма</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="table-primary">
+                                <td>Итого</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>@(Math.Truncate(filtredSum * 100)/100)</td>
+                            </tr>
+                            @foreach (var payment in paymentsFiltred)
+                            {
+                                <tr>
+                                    <td>@payment.Period</td>
+                                    <td>@payment.SP</td>
+                                    <td>@payment.Days</td>
+                                    <td>@payment.Hours</td>
+                                    <td>@payment.Summ</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            }
+</Authorized>
+</AuthorizeView>
+
+
+@code {
+    ICollection<PayrollDTO> payrolls;
+    Payments payments;
+    DateTime startFilter { get; set; } = DateTime.Parse($"01-01-{DateTime.Now.Year}");
+    DateTime endFilter { get; set; } = DateTime.Now;
+    Itog itog = new Itog();
+    double filtredSum = 0;
+    SortedSet<string> paymentTypes = new SortedSet<string>();
+    bool showPaymentByType = false;
+    List<PaymentDTO> paymentsFiltred = new List<PaymentDTO>();
+    double haveToPay = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await FilterChangedAsync();
+    }
+
+    private async Task FilterChangedAsync()
+    {
+        payrolls = await payrollService.FiltredonPeriodPayrolsAsync(startFilter, endFilter);
+        itog = new Itog();
+        foreach (var payrol in payrolls)
+        {
+            itog.Accrued += payrol.Accrued;
+            itog.Withheld += payrol.Withheld;
+            itog.Natural += payrol.Natural;
+            itog.Paid += payrol.Paid;
+
+            foreach (var payment in payrol.Payments)
+            {
+                paymentTypes.Add(payment.Name);
+            }
+        }
+        haveToPay = await contractService.GetCostOnPeriod(startFilter, endFilter);
+    }
+
+    public class Itog
+    {
+        public double Accrued { get; set; }
+        public double Withheld { get; set; }
+        public double Natural { get; set; }
+        public double Paid { get; set; }
+    }
+
+    IFileListEntry file;
+    async Task HandleFileStream(IFileListEntry[] files)
+    {
+        file = files.FirstOrDefault();
+        if (file != null)
+        {
+            await payrollService.AddPayrolsSaveToDB(files);
+        }
+        await FilterChangedAsync();
+    }
+
+    void FiltredPaymentByName(ChangeEventArgs e)
+    {
+        string filtredName = e.Value.ToString();
+        if (filtredName.Equals("Все"))
+        {
+            showPaymentByType = false;
+        }
+        else
+        {
+            paymentsFiltred = new List<PaymentDTO>();
+            filtredSum = 0;
+            foreach (var payroll in payrolls)
+            {
+                foreach (var payment in payroll.Payments)
+                {
+                    //В экселе может быть 2 пробела, в HTML они заменяются одним и строки не совпадают. Для сравнения убрать все пробелы
+                    if (payment.Name.Equals(filtredName))
+                    {
+                        paymentsFiltred.Add(payment);
+                        filtredSum += payment.Summ;
+                    }
+                }
+            }
+            showPaymentByType = true;
+        }
+    }
+}

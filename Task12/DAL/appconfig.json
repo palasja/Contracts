@@ -1,0 +1,6 @@
+{
+  "ConnectionStrings": {
+    //"ConnectionStrings": "Server=DESKTOP-D4T5739\\SQLEXPRESS;Initial Catalog=Task12;Integrated Security=SSPI;"
+    "ConnectionStrings": "Server=DESKTOP-CR423FO;Initial Catalog=Contracts;Integrated Security=SSPI;"
+  }
+}

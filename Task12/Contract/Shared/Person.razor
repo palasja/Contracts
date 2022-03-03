@@ -1,0 +1,101 @@
+﻿@if (displayChange)
+{
+    <div class="modal-backdrop show"></div>
+
+    <div class="modal fade show" id="calculateModal" tabindex="-1" role="dialog"
+         aria-labelledby="confirmModal" aria-hidden="true" style="display:block">
+
+        <div class="modal-dialog modal-lg" role="form">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@Title</h5>
+                    <button type="button" @onclick="onCancel" class="close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="person" OnValidSubmit="onAction">
+                        <DataAnnotationsValidator/>
+                        <div class="row">
+                            <div class="col">
+                                <div class="form-group">
+                                    <label for="lastName">Фамилия</label>
+                                    <input type="text" class="form-control" aria-describedby="otherPlace" @bind="@person.LastName" id="lastName" placeholder="Иванов" />
+                                    <small id="lastName" class="form-text text-muted">Фамилия контактного лица</small>
+                                    <ValidationMessage For="@(() => person.LastName)" />
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="firstName">Имя</label>
+                                    <input type="text" class="form-control" aria-describedby="firstName" @bind="@person.FirstName" id="firstName" placeholder="Иван" />
+                                    <small id="firstName" class="form-text text-muted">Имя контактного лица</small>
+                                    <ValidationMessage For="@(()=> person.FirstName)"/>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="midleName">Отчечство</label>
+                                    <input type="text" class="form-control" aria-describedby="midleName" @bind="@person.MiddleName" id="midleName" placeholder="Иванович" />
+                                    <small id="midleName" class="form-text text-muted">Отчество контактного лица</small>
+                                    <ValidationMessage For="@(()=> person.MiddleName)" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col">
+                                <div class="form-group">
+                                    <label for="position">Должность</label>
+                                    <input type="text" class="form-control" @bind="@person.Position" id="position" placeholder="Главны бухгалтер" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-4">
+                                <div class="form-group">
+                                    <label for="workPhone">Рабочий теелфон</label>
+                                    <input type="text" class="form-control" @bind="@person.Phone" id="lastName" placeholder="8-02355-4-22-22" />
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="form-group">
+                                    <label for="email">Email</label>
+                                    <input type="email" class="form-control" @bind="@person.Email" id="email" placeholder="IvanovII@outlook.com" />
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="form-group">
+                                    <label for="mobilePhone">Мобильный теелфон</label>
+                                    <input type="text" class="form-control" @bind="@person.MobilePhone" id="mobilePhone" placeholder="8-029-111-11-11" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary">Сохранить</button>
+                        </div>
+                    </EditForm>
+                </div>
+
+            </div>
+        </div>
+    </div>
+}
+
+
+@code
+{
+    bool displayChange = false;
+    [Parameter] public RenderFragment ChildContent { get; set; }
+    [Parameter] public EventCallback onCancel { get; set; }
+    [Parameter] public EventCallback onAction { get; set; }
+    [Parameter] public string Title { get; set; }
+    [Parameter] public PersonDTO person { get; set; } = new PersonDTO();
+
+    public void Hide()
+    {
+        displayChange = false;
+        person = new PersonDTO();
+    }
+
+    public void Show() => displayChange = true;
+
+
+}

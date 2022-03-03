@@ -1,0 +1,36 @@
+﻿@if (displayConfirmation)
+{
+<div class="modal-backdrop show"></div>
+
+<div class="modal fade show" id="confirmModal" tabindex="-1" role="dialog"
+     aria-labelledby="confirmModal" aria-hidden="true" style="display:block">
+
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@Title</h5>
+                <button type="button" @onclick="onCancel" class="close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                @ChildContent
+            </div>
+            <div class="modal-footer">
+                <button type="button" @onclick="onConfirm" class="btn btn-danger">Удалить</button>
+                <button type="button" @onclick="onCancel" class="btn btn-primary">Отмена</button>
+            </div>
+        </div>
+    </div>
+</div>
+}
+@code
+{
+    bool displayConfirmation = false;
+    [Parameter] public string Title { get; set; } = "Подтверждение";
+    [Parameter] public RenderFragment ChildContent { get; set; }
+    [Parameter] public EventCallback onConfirm { get; set; }
+    [Parameter] public EventCallback onCancel { get; set; }
+
+    public void Hide() => displayConfirmation = false;
+    public void Show() => displayConfirmation = true;
+
+}

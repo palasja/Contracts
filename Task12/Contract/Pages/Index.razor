@@ -1,0 +1,99 @@
+﻿@page "/"
+@inject IAreaRepositiry areaService
+<div class="row">
+    <div class="col col-3 m-3">
+        <button class="btn btn-light m-3" @onclick="() => areaAdd.Show()">Добавить</button>
+    </div>
+</div>
+@if (AreasOrgCount == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Название</th>
+                <th>Кол-во организаций</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var area in AreasOrgCount)
+            {
+                <tr>
+                    <td>
+                        <NavLink class="nav-link" href=@($"OrganizationsArea/{area.Area.Id}") Match="NavLinkMatch.All">
+                            @area.Area.FullName
+                        </NavLink>
+                    </td>
+                    <td>@area.CountOrg</td>
+                    <td>
+                        <button class="btn btn-danger" @onclick="() => Remove(area.Area.Id)">Удалить</button>
+                        <button class="btn btn-light" @onclick="() => onChangeArea(area.Area)">Изменить</button>
+                    </td>
+                </tr>
+                <Confirm @ref="confirm" onCancel="() => confirm.Hide()" onConfirm="onConfirm">
+                    <div class="text-danger">Удалить @area.Area.FullName ?</div>
+                </Confirm>
+            }
+
+            <Area @ref="areaChange" Title="Изменить" onCancel="() => areaChange.Hide()" onAction="Update" isChange="true" area="changedArea" />
+            <Area @ref="areaAdd" Title="Добавить" onCancel="() => areaAdd.Hide()" onAction="Save" />
+        </tbody>
+    </table>
+
+}
+
+@code {
+    protected List<AreaCountOrg> AreasOrgCount;
+    int deletedOrg;
+    Confirm confirm;
+    Area areaChange;
+    Area areaAdd;
+
+    protected override async Task OnInitializedAsync()
+    {
+        AreasOrgCount = await areaService.GetAreasForIndexAsync();
+    }
+
+    void Remove(int id)
+    {
+        deletedOrg = id;
+        confirm.Show();
+    }
+
+    async Task onConfirm()
+    {
+        confirm.Hide();
+        await areaService.DelAreaAsync(deletedOrg);
+        AreasOrgCount = await areaService.GetAreasForIndexAsync();
+        StateHasChanged();
+
+    }
+
+    AreaDTO changedArea;
+    void onChangeArea(AreaDTO area)
+    {
+        changedArea = area;
+        areaChange.Show();
+
+    }
+
+    public async Task Save()
+    {
+        await areaService.AddAreaAsync(areaAdd.area);
+        AreasOrgCount = await areaService.GetAreasForIndexAsync();
+        areaAdd.Hide();
+    }
+
+    public async Task Update()
+    {
+        await areaService.UpdateAreaAsync(changedArea);
+        AreasOrgCount = await areaService.GetAreasForIndexAsync();
+        areaChange.Hide();
+    }
+}
+
+

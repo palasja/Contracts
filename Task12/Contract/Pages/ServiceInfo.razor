@@ -1,0 +1,50 @@
+﻿@page "/ServiceInfo"
+
+@inject IServiceInfoRepository serviceInfoService
+
+@if (AllService == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (AllService.Count == 0)
+{
+    <p><em>У организации нет контрактов</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Наименование</th>
+                <th>Осн место\Сервер</th>
+                <th>Доп. место\Раб. место</th>
+                <th>Описание</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var serviceInfo in AllService)
+            {
+                <tr>
+                    <td> @serviceInfo.Id</td>
+                    <td> @serviceInfo.Name</td>
+                    <td> @serviceInfo.MainCost</td>
+                    <td> @serviceInfo.AdditionalCost</td>
+                    <td>@serviceInfo.Description</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+}
+
+@code {
+    List<ServiceInfoDTO> AllService;
+
+    protected override async Task OnInitializedAsync()
+    {
+        AllService = await serviceInfoService.GetServicesInfoAsync();
+
+    }
+
+}

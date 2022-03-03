@@ -1,0 +1,66 @@
+﻿@page "/Contracts/"
+@page "/Contracts/{OrganizationId:int}/"
+@inject IContractsServiceRepository contractService
+@if (ContractsOrg == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (ContractsOrg.Count == 0)
+{
+    <p><em>У организации нет контрактов</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Номер</th>
+                <th>Дата начала</th>
+                <th>Дата окончания</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var contract in ContractsOrg)
+            {
+                <tr>
+                    <td> @contract.Id</td>
+                    <td> @contract.Number</td>
+                    <td> @contract.StartDate.ToString("dd.MM.yyyy")</td>
+                    <td> @contract.EndDate?.ToString("dd.MM.yyyy")</td>
+                </tr>
+                @foreach (var hardware in @contract.HardwareForInfo)
+                {
+                    <tr>
+                        <td> </td>
+                        <td> @hardware.ServiceInfoName</td>
+                        <td> Серверов: @hardware.ServerCount </td>
+                        <td> Рабочих мест: @hardware.WorkplaceCount </td>
+                    </tr>
+                }
+                @foreach (var software in @contract.SoftwareForInfo)
+                {
+                    <tr>
+                        <td> </td>
+                        <td> @software.ServiceInfoName</td>
+                        <td> Основных: @software.MainPlaceCount </td>
+                        <td> Дополнительных: @software.AdditionalPlaceCount </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+
+}
+
+@code {
+    [Parameter] public int OrganizationId { get; set; }
+    List<ContractInfo> ContractsOrg;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ContractsOrg = await contractService.GetFullContractOnOrganization(OrganizationId);
+
+    }
+
+}

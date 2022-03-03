@@ -1,0 +1,154 @@
+﻿@page "/OrganizationsArea"
+@page "/OrganizationsArea/{AreaId:int}"
+@inject IOrganizationRepository organizationService;
+@inject IPayrollServices ps;
+@inject IFileUpload fileUpload
+@if (organizations == null)
+{
+    @*    <p><em>Loading...</em></p>*@
+}
+else
+{
+    <div class="row">
+        <div class="col col-3" style="position:static">
+            <button class="btn btn-light m-3" "NewContract">Добавить договор</button>
+        </div>
+        <div class="col col-3" style="position:static">
+            <button class="btn btn-light m-3" @onclick="NewOrganization">Добавить организацию</button>
+        </div>
+        <div class="col col-3" style="position:static">
+            <button class="btn btn-light m-3" @onclick="Calculate">Расчитать</button>
+        </div>
+        <div class="col col-3" style="position:static">
+            <label for="FileFromTM">Список из TeamManager</label>
+            <BlazorInputFile.InputFile id="FileFromTM" OnChange="HandleFileStream"></BlazorInputFile.InputFile>
+            <h3>@tmp</h3>
+        </div>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Название</th>
+                <th>Адрес</th>
+                <th>Email</th>
+                <th>СМДО</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = curStartShow; i < onPage + curStartShow; i++)
+            {
+                var org = organizations[i];
+                <tr>
+                    <td>  <NavLink href=@($"Contracts/{@org.Id}")>@org.FullName</NavLink></td>
+                    <td>@org.Address</td>
+                    <td>@org.Email</td>
+                    <td>@org.Smdo</td>
+                    <td><button class="btn btn-light m-3" @onclick="() =>ShowСhangeOrg(org)">Изменить</button></td>
+                </tr>
+            }
+            @*              @foreach (var org in organizations)
+        {
+            <tr>
+                <td>  <NavLink href=@($"Contracts/{@org.Id}")>@org.FullName</NavLink></td>
+                <td>@org.Address</td>
+                <td>@org.Email</td>
+                <td>@org.Smdo</td>
+                <td><button class="btn btn-light m-3" @onclick="() =>ShowСhangeOrg(org)">Изменить</button></td>
+            </tr>
+        }*@
+        </tbody>
+    </table>
+    <div class="row" style="justify-content:flex-end">
+        <div class="btn-group" role="group">
+            @for (int p = 0; p < btnCount; p++)
+            {
+                var numPage = p;
+                <button type="button" class="btn btn-secondary" @onclick="() => ChoseShow(numPage)">@(numPage + 1)</button>
+            }
+        </div>
+    </div>
+
+
+    <NewContract @ref="newContract" onCancel="() => newContract.Hide()" AreaId="@AreaId"></NewContract>
+    <NewOrganization @ref="newOrganization" Title="Новая организация" onCancel="() => newOrganization.Hide()" onAction="SaveOrg" isNew="true"></NewOrganization>
+    <NewOrganization @ref="changeOrganization" Title="Изменить" onCancel="CancelChangeOrganization" organization="changedOrg" onAction="ChangeOrg"></NewOrganization>
+    <Calculate @ref="calculate" onCancel="() => calculate.Hide()" AreaId="@AreaId"></Calculate>
+
+}
+
+@code {
+    [Parameter] public int AreaId { get; set; }
+    NewContract newContract;
+    NewOrganization newOrganization;
+    NewOrganization changeOrganization;
+    Calculate calculate;
+    List<OrganizationDTO> organizations;
+    OrganizationDTO changedOrg;
+
+    //------------
+    const int onPage = 5;
+    int btnCount = 0;
+    int curStartShow = 0;
+
+    void ChoseShow(int val)
+    {
+        curStartShow = onPage * val;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        organizations = await organizationService.GetOrganizationOnAreaAsync((int)AreaId);
+        btnCount = organizations.Count / onPage;
+
+    }
+
+    void NewContract()
+    {
+        newContract.Show();
+    }
+    void NewOrganization()
+    {
+        newOrganization.Show();
+    }
+    void ShowСhangeOrg(OrganizationDTO org)
+    {
+        changedOrg = org;
+        changeOrganization.Show();
+    }
+    void Calculate()
+    {
+        calculate.Show();
+    }
+    void CancelChangeOrganization()
+    {
+        changedOrg = null;
+        changeOrganization.Hide();
+    }
+    public async Task SaveOrg()
+    {
+        newOrganization.organization.AreaId = AreaId;
+        await organizationService.AddOrganization(newOrganization.organization, newOrganization.person);
+        organizations = await organizationService.GetOrganizationOnAreaAsync((int)AreaId);
+        newContract.RefreshMe();
+        newOrganization.Hide();
+    }
+    public async void ChangeOrg()
+    {
+        await organizationService.ChangeOrganization(changeOrganization.organization);
+        organizations = await organizationService.GetOrganizationOnAreaAsync((int)AreaId);
+        changeOrganization.Hide();
+    }
+
+    string tmp = "";
+    IFileListEntry file;
+    async Task HandleFileStream(IFileListEntry[] files)
+    {
+        file = files.FirstOrDefault();
+        if (file != null)
+        {
+            tmp = await organizationService.OrganizationFromTM(file);
+        }
+    }
+}

@@ -1,0 +1,155 @@
+﻿@inject IServiceInfoRepository serviceInfoService
+@inject IContractsServiceRepository contractService
+@inject IOrganizationRepository organizationService
+@if (displayConfirmation)
+{
+    <div class="modal-backdrop show"></div>
+
+    <div class="modal fade show col-10" id="confirmModal" tabindex="-1" role="form"
+         aria-labelledby="confirmModal" aria-hidden="true" style="display:block">
+
+        <div class="modal-dialog modal-lg" role="form">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Новый договор</h5>
+                    <button type="button" @onclick="onCancel" class="close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="@Contract" OnValidSubmit="@Add">
+                        <DataAnnotationsValidator />
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label for="orgfanization">Организация договора</label>
+                                        <select class="form-control" id="orgfanizations" @bind="organization.Id" required>
+                                            @if (Organizations != null)
+                                            {
+                                                @foreach (var org in Organizations)
+                                                {
+                                                    <option value="@org.Id">@org.Name</option>
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label for="number">Номер договорва</label>
+                                        <input type="text" class="form-control" @bind="@Contract.Number" id="number" placeholder="22-32T/14-А" />
+                                        <ValidationMessage For="@(() => Contract.Number)" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row form-group">
+                                <label for="mainPlaceTK" class="m-3">Клиент TK</label>
+                                <input type="number" class="form-control col-3 m-2" @bind="@softwaresTK.MainPlaceCount" id="mainPlaceTK" placeholder="0" />
+                                <input type="number" class="form-control col-3 m-2" @bind="@softwaresTK.AdditionalPlaceCount" id="adedPlaceTK" placeholder="0" />
+                            </div>
+
+
+                            <div class="row form-group">
+                                <label for="mainPlace" class="m-3">Клиент ГРС</label>
+                                <input type="number" class="form-control col-3 m-2" @bind="@softwaresGRS.MainPlaceCount" id="mainPlaceGRS" placeholder="0" />
+                                <input type="number" class="form-control col-3 m-2" @bind="@softwaresGRS.AdditionalPlaceCount" id="adedPlaceTKGRS" placeholder="0" />
+                            </div>
+                            <div class="row form-group">
+                                <label for="mainPlace" class="m-3">Тех подержка</label>
+                                <input type="number" class="form-control col-3 m-2" @bind="@hardwaresTO.ServerCount" id="serverPlaceTO" placeholder="0" />
+                                <input type="number" class="form-control col-3 m-2" @bind="@hardwaresTO.WorkplaceCount" id="workPlaceTKGRS" placeholder="0" />
+                            </div>
+                            <div class="row form-group">
+                                <label for="mainPlace" class="m-3">Удалённая тех подержка</label>
+                                <input type="number" class="form-control col-3 m-2" @bind="@hardwaresUTO.ServerCount" id="serverPlaceUTO" placeholder="0" />
+                                <input type="number" class="form-control col-3 m-2" @bind="@hardwaresUTO.WorkplaceCount" id="workPlaceTKUTO" placeholder="0" />
+                            </div>
+
+                            <div class="row">
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label for="startDate">Дата начала действия договора</label>
+                                        <input type="date" class="form-control" aria-describedby="startDate" @bind="@Contract.StartDate" @bind:format="yyyy-MM-dd" id="startDate" />
+                                        <small id="startDate" class="form-text text-muted">Дата начала согласно текста договра</small>
+                                        <ValidationMessage For="@(() => Contract.StartDate)" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="endDate">Дата окончания действия договора</label>
+                                        <input type="date" class="form-control" aria-describedby="endDate" @bind="@Contract.EndDate" @bind:format="yyyy-MM-dd" id="endDate" />
+                                        <small id="endDate" class="form-text text-muted">В случае отсутствия отсатвить пустым</small>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary">Добавить</button>
+                            <button type="button" @onclick="onCancel" class="btn btn-danger">Отмена</button>
+                        </div>
+                    </EditForm>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+}
+
+
+@code
+{
+    bool displayConfirmation = false;
+    [Parameter] public int AreaId { get; set; }
+    [Parameter] public RenderFragment ChildContent { get; set; }
+    [Parameter] public EventCallback onCancel { get; set; }
+
+    public void Hide() => displayConfirmation = false;
+    public void Show() => displayConfirmation = true;
+    public List<OrganizationDTO> Organizations = new List<OrganizationDTO>();
+    public List<ServiceInfoDTO> ServicesInfo = new List<ServiceInfoDTO>();
+    public ContractDTO Contract = new ContractDTO();
+
+    public OrganizationDTO organization = new OrganizationDTO();
+
+    public ServiceSoftwareDTO softwaresTK = new ServiceSoftwareDTO() { ServiceInfoId = 1 };
+    public ServiceSoftwareDTO softwaresGRS = new ServiceSoftwareDTO() { ServiceInfoId = 2 };
+    public ServiceHardwareDTO hardwaresTO = new ServiceHardwareDTO() { ServiceInfoId = 3 };
+    public ServiceHardwareDTO hardwaresUTO = new ServiceHardwareDTO() { ServiceInfoId = 4 };
+    protected override async Task OnInitializedAsync()
+    {
+        Organizations = await organizationService.GetOrganizationOnAreaAsync(AreaId);
+        ServicesInfo = await serviceInfoService.GetServicesInfoAsync();
+        Contract.StartDate = DateTime.Now;
+        Contract.EndDate = null;
+    }
+
+    protected async Task Add()
+    {
+        var hardwares = new List<ServiceHardwareDTO>();
+        var softwares = new List<ServiceSoftwareDTO>();
+        if (hardwaresTO.ServerCount != 0 || hardwaresTO.WorkplaceCount != 0)
+        {
+            hardwares.Add(hardwaresTO);
+        }
+        if (hardwaresUTO.ServerCount != 0 || hardwaresUTO.WorkplaceCount != 0)
+        {
+            hardwares.Add(hardwaresUTO);
+        }
+        if (softwaresTK.MainPlaceCount != 0 || softwaresTK.AdditionalPlaceCount != 0)
+        {
+            softwares.Add(softwaresTK);
+        }
+        if (softwaresGRS.MainPlaceCount != 0 || softwaresGRS.AdditionalPlaceCount != 0)
+        {
+            softwares.Add(softwaresGRS);
+        }
+        Contract.OrganizationId = organization.Id;
+        await contractService.AddContract(Contract, hardwares, softwares);
+        Hide();
+    }
+
+    public async Task RefreshMe()
+    {
+        Organizations = await organizationService.GetOrganizationOnAreaAsync(AreaId);
+    }
+}

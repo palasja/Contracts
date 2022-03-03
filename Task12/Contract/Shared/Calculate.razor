@@ -1,0 +1,61 @@
+﻿@inject IContractsServiceRepository contractService
+@if (displayConfirmation)
+{
+    <div class="modal-backdrop show"></div>
+
+    <div class="modal fade show" id="calculateModal" tabindex="-1" role="dialog"
+         aria-labelledby="confirmModal" aria-hidden="true" style="display:block">
+
+        <div class="modal-dialog modal-lg" role="form">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Расчитать прибыль</h5>
+                    <button type="button" @onclick="onCancel" class="close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row m-3">
+                        <input type="date" @bind="startFilter" />
+                        <input type="date" @bind="endFilter" />
+                    </div>
+                    <div class="row m-3">
+                        <div class="col-4 m-3">
+                            <label for="cost">Всего</label>
+                            <div id="cost">@cost</div>
+                        </div>
+                        <div class="col-4 m-3">
+                            <div id="myPercetnt">@haveToPay</div>
+                        </div>
+                        
+                    </div>
+                    </div>
+                <div class="modal-footer">
+                    <button type="button" @onclick="onConfirm" class="btn btn-primary">Рсчитать</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+@code
+{
+    bool displayConfirmation = false;
+    [Parameter] public int AreaId { get; set; }
+    [Parameter] public RenderFragment ChildContent { get; set; }
+
+    [Parameter] public EventCallback onCancel { get; set; }
+    DateTime startFilter = DateTime.Now;
+    DateTime endFilter = DateTime.Now;
+    double cost = 0;
+    double haveToPay = 0;
+
+    public void Hide() {
+        displayConfirmation = false;
+        cost = 0;
+    }
+    public void Show() => displayConfirmation = true;
+
+    public async Task onConfirm()
+    {
+        haveToPay = await contractService.GetCostOnPeriod(AreaId, startFilter, endFilter);
+    }
+
+}

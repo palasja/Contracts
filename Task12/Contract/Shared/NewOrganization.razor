@@ -1,0 +1,143 @@
+﻿@if (displayChange)
+{
+    <div class="modal-backdrop show"></div>
+
+    <div class="modal fade show" id="calculateModal" tabindex="-1" role="dialog"
+         aria-labelledby="confirmModal" aria-hidden="true" style="display:block">
+
+        <div class="modal-dialog modal-lg" role="form">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@Title</h5>
+                    <button type="button" @onclick="onCancel" class="close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label for="orgUNP">УНП</label>
+                                <input type="text" class="form-control" @bind="@organization.UNP" id="orgUNP" placeholder="Финансовый отдел Наровлянского райисполкома" required />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label for="orgFullName">Полное название</label>
+                                <input type="text" class="form-control" @bind="@organization.FullName" id="orgFullName" placeholder="Финансовый отдел Наровлянского райисполкома" required />
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label for="orgName">Название</label>
+                                <input type="text" class="form-control" @bind="@organization.Name" id="orgName" placeholder="Наровля ФО" required />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="orgAddress">Адресс</label>
+                                <input type="text" class="form-control" @bind="@organization.Address" id="orgAddress" placeholder="г. Наровля ул. Коммунистическая д. 3" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-4">
+                            <div class="form-group">
+                                <label for="orgEmail">Email</label>
+                                <input type="email" class="form-control" @bind="@organization.Email" id="orgEmail" placeholder="NarovlyaFO@outlook.com" />
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="form-group">
+                                <label for="smdo">Id в СМДО</label>
+                                <input type="text" class="form-control" @bind="@organization.Smdo" id="smdo" placeholder="Org12345" />
+                            </div>
+                        </div>
+                    </div>
+                    @if (isNew)
+                    {
+                        <div class="row">
+                            <div class="col">
+                                <div class="form-group">
+                                    <label for="lastName">Фамилия</label>
+                                    <input type="text" class="form-control" aria-describedby="otherPlace" @bind="@person.LastName" id="lastName" placeholder="Иванов" required />
+                                    <small id="lastName" class="form-text text-muted">Фамилия контактного лица</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="firstName">Имя</label>
+                                    <input type="text" class="form-control" aria-describedby="firstName" @bind="@person.FirstName" id="firstName" placeholder="Иван" required />
+                                    <small id="firstName" class="form-text text-muted">Имя контактного лица</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="midleName">Отчечство</label>
+                                    <input type="text" class="form-control" aria-describedby="midleName" @bind="@person.MiddleName" id="midleName" placeholder="Ивановичч" required />
+                                    <small id="midleName" class="form-text text-muted">Отчество контактного лица</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col">
+                                <div class="form-group">
+                                    <label for="position">Должность</label>
+                                    <input type="text" class="form-control" @bind="@person.Position" id="position" placeholder="Главны бухгалтер" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-4">
+                                <div class="form-group">
+                                    <label for="workPhone">Рабочий теелфон</label>
+                                    <input type="text" class="form-control" @bind="@person.Phone" id="lastName" placeholder="8-02355-4-22-22" />
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="form-group">
+                                    <label for="email">Email</label>
+                                    <input type="email" class="form-control" @bind="@person.Email" id="email" placeholder="IvanovII@outlook.com" />
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="form-group">
+                                    <label for="mobilePhone">Мобильный теелфон</label>
+                                    <input type="text" class="form-control" @bind="@person.MobilePhone" id="mobilePhone" placeholder="8-029-111-11-11" />
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" @onclick="onAction" class="btn btn-primary">Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+@code
+{
+    bool displayChange = false;
+    [Parameter] public RenderFragment ChildContent { get; set; }
+    [Parameter] public EventCallback onCancel { get; set; }
+    [Parameter] public EventCallback onAction { get; set; }
+    [Parameter] public bool isNew { get; set; } = false;
+    [Parameter] public OrganizationDTO organization { get; set; } = new OrganizationDTO();
+    [Parameter] public string Title { get; set; }
+    [Parameter] public PersonDTO person { get; set; } = new PersonDTO();
+
+    public void Hide()
+    {
+        displayChange = false;
+        organization = new OrganizationDTO();
+    }
+
+    public void Show() => displayChange = true;
+
+}

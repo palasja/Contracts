@@ -11,10 +11,10 @@ namespace BLL.ModelsDTO.Serivces
         public int Id { get; set; }
         [Required(ErrorMessage = "Укажите наименование услуги")]
         public string Name { get; set; }
-        [Required]
+        /*[Required]
         public double MainCost { get; set; }
         [Required]
-        public double AdditionalCost { get; set; }
+        public double AdditionalCost { get; set; }*/
         public string Description { get; set; }
     }
 }

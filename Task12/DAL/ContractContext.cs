@@ -14,7 +14,8 @@ namespace DAL
         public DbSet<Area> Areas { get; set; }
         public DbSet<ServiceHardware> ServiceHardwares { get; set; }
         public DbSet<ServiceSoftware> ServiceSoftwares { get; set; }
-        public DbSet<ServiceInfo> ServiceInfo { get; set; }
+        public DbSet<ServiceType> ServiceType { get; set; }
+        public DbSet<ServiceCost> ServiceCost { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -25,7 +26,8 @@ namespace DAL
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<ServiceInfo>().HasData(ServiceInfoRepository.getSerivecesInfo());
+            modelBuilder.Entity<ServiceType>().HasData(ServiceTypeRepository.getSerivecesType());
+            modelBuilder.Entity<ServiceCost>().HasData(ServiceCostRepository.getSerivecesCost());
             /*           modelBuilder.Entity<Area>().HasData(AreaRepository.getAreas());
 
                        modelBuilder.Entity<ServiceSoftware>().HasData(ServiceSoftwareRepository.getSerivecesSoftware());

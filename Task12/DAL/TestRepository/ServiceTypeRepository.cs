@@ -5,52 +5,40 @@ using System.Text;
 
 namespace DAL.TestRepository
 {
-    static class ServiceInfoRepository
+    static class ServiceTypeRepository
     {
-        public static List<ServiceInfo> getSerivecesInfo() 
+        public static List<ServiceType> getSerivecesType() 
         {
-            var si = new List<ServiceInfo>();
+            var si = new List<ServiceType>();
 
-            si.Add(new ServiceInfo()
+            si.Add(new ServiceType()
             {
                 Id = 1,
                 Name = "Обслуживание КлиентТК",
-                MainCost = 39.60,
-                AdditionalCost = 19.80,
-                More5Cost = 14.76,
                 Description = "Консультации, удалённая поддержка. При необходимости выезд к клиенту"
             });
-            si.Add(new ServiceInfo()
+            si.Add(new ServiceType()
             {
                 Id = 2,
                 Name = "Обслуживание ГРС",
-                MainCost = 39.60,
-                AdditionalCost = 19.80,
-                More5Cost = 14.76,
                 Description = "Консультации, удалённая поддержка. При необходимости выезд к клиенту."
             });
-            si.Add(new ServiceInfo()
+            si.Add(new ServiceType()
             {
                 Id = 3,
                 Name = "Сопровождение вычислительно техники",
-                MainCost = 24.00,
-                AdditionalCost = 52.80,
                 Description = "Обслуживание техники. Ежемесечная проверка с диагностикой на месте эксплуатации."
             });
-            si.Add(new ServiceInfo()
+            si.Add(new ServiceType()
             {
                 Id = 4,
                 Name = "Удалённое сопровождение вычислительно техники",
-                MainCost = 19.20,
-                AdditionalCost = 14.40,
                 Description = "Удалённое бслуживание техники без выезда на место"
             });
-            si.Add(new ServiceInfo()
+            si.Add(new ServiceType()
             {
                 Id = 5,
                 Name = "Установка ГРС",
-                MainCost = 50.40,
-                AdditionalCost = 21.48,
                 Description = "Удалённая установка. При необходимости выезд к клиенту и установка на месте."
             });
             return si;

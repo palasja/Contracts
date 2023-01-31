@@ -75,23 +75,44 @@ namespace BLL.Services
             string result = "";
             
             var path = await fs.SaveFile(fileEntry, fileEntry.Name);
-            
-            DataTable dt = await fs.GetTableFromFile(path);
+            DataTable dt = fs.GetTableFromFile(path);
 
             Area area = await GetAreaId(areName);
+            int newOrgCount = 0;
+            int newContractsCount = 0;
             if (area == null)
             {
                 result = $"Нет райна с названием {areName}";
             }
             else 
             {
-                List<Organization> organizations = await ReadOrganizationsWithContracts(dt, area.Id);
+                List<Organization> TMOrganizations = await ReadOrganizationsWithContracts(dt, area.Id);
                 using (ContractContext context = new ContractContext())
                 {
-                    await context.Organizations.AddRangeAsync(organizations);
-                    await context.SaveChangesAsync();
+                    foreach(Organization TMOrg in TMOrganizations)
+                    {
+                        var currentOrganization = await context.Organizations.Include(o => o.Contracts).FirstOrDefaultAsync(dbOrg => dbOrg.UNP == TMOrg.UNP);
+                        if(currentOrganization == null)
+                        {
+                            await context.Organizations.AddRangeAsync(TMOrganizations);
+                            await context.SaveChangesAsync();
+                            newOrgCount += 1;
+                            result = $"Добавлено: организаций - {newOrgCount}";
+                        } else {
+                            foreach(Contract TMContract in TMOrg.Contracts)
+                            {
+                                var currentContract = currentOrganization.Contracts.FirstOrDefault(c => c.Number == TMContract.Number);
+                                if (currentContract == null)
+                                {
+                                    currentOrganization.Contracts.Add(TMContract);
+                                    context.SaveChanges();
+                                    newContractsCount += 1;
+                                }
+                            }
+                            result = $"Добавлено: организаций - {newOrgCount}; договоров {newContractsCount} ";
+                        }
+                    }
                 }
-                result = $"Организаций добавлено: {organizations.Count} ";
             }
             return result;
         }

@@ -55,11 +55,12 @@ namespace BLL.Services
             return fullPath;
         }
 
-        public async Task<DataTable> GetTableFromFile(string path)
+        public DataTable GetTableFromFile(string path)
         {
             //Установить кодировку таблицы
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             DataTable dt;
+            
             using (FileStream stream = File.Open(path, FileMode.Open, FileAccess.Read))
             {
                 IExcelDataReader excelReader;

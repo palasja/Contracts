@@ -75,7 +75,7 @@ namespace BLL.Services
             string result = "";
             
             var path = await fs.SaveFile(fileEntry, fileEntry.Name);
-            DataTable dt = fs.GetTableFromFile(path);
+            DataTable dt = await fs.GetTableFromFile(path);
 
             Area area = await GetAreaId(areName);
             int newOrgCount = 0;

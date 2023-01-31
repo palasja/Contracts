@@ -55,32 +55,34 @@ namespace BLL.Services
             return fullPath;
         }
 
-        public DataTable GetTableFromFile(string path)
+        public async Task<DataTable> GetTableFromFile(string path)
         {
             //Установить кодировку таблицы
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             DataTable dt;
-            
-            using (FileStream stream = File.Open(path, FileMode.Open, FileAccess.Read))
-            {
-                IExcelDataReader excelReader;
+            return await Task.Run<DataTable>(() => {
+                using (FileStream stream = File.Open(path, FileMode.Open, FileAccess.Read))
+                {
+                    IExcelDataReader excelReader;
 
-                //1. Reading Excel file
-                if (Path.GetExtension(path).ToUpper() == ".XLS")
-                {
-                    //1.1 Reading from a binary Excel file ('97-2003 format; *.xls)
-                    excelReader = ExcelReaderFactory.CreateReader(stream);
+                    //1. Reading Excel file
+                    if (Path.GetExtension(path).ToUpper() == ".XLS")
+                    {
+                        //1.1 Reading from a binary Excel file ('97-2003 format; *.xls)
+                        excelReader = ExcelReaderFactory.CreateReader(stream);
+                    }
+                    else
+                    {
+                        //1.2 Reading from a OpenXml Excel file (2007 format; *.xlsx)
+                        excelReader = ExcelReaderFactory.CreateOpenXmlReader(stream);
+                    }
+                    //2. DataSet - The result of each spreadsheet will be created in the result.Tables
+                    DataSet result = excelReader.AsDataSet();
+                    dt = result.Tables[0];
                 }
-                else
-                {
-                    //1.2 Reading from a OpenXml Excel file (2007 format; *.xlsx)
-                    excelReader = ExcelReaderFactory.CreateOpenXmlReader(stream);
-                }
-                //2. DataSet - The result of each spreadsheet will be created in the result.Tables
-                DataSet result = excelReader.AsDataSet();
-                dt = result.Tables[0];
-            }
-            return dt;
+                return dt;
+            });
+            
         }
 
     }

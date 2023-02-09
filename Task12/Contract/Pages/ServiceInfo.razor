@@ -8,17 +8,26 @@
 }
 else if (AllService.Count == 0)
 {
-    <p><em>У организации нет контрактов</em></p>
+    <div class="row">
+        <div class="col col-3 m-3">
+            <button class="btn btn-light m-3" @onclick="() => addYearCost.Show()">Добавить</button>
+        </div>
+    </div>
 }
 else
 {
+    <div class="row">
+        <div class="col col-3 m-3">
+            <button class="btn btn-light m-3" @onclick="() => addYearCost.Show()">Добавить</button>
+        </div>
+    </div>
     <table class="table">
         <thead>
             <tr>
                 <th>Id</th>
                 <th>Наименование</th>
-@*                <th>Осн место\Сервер</th>
-                <th>Доп. место\Раб. место</th>*@
+                @*                <th>Осн место\Сервер</th>
+                    <th>Доп. место\Раб. место</th>*@
                 <th>Описание</th>
             </tr>
         </thead>
@@ -27,18 +36,20 @@ else
             {
                 <tr>
                     <td> @serviceInfo.Id</td>
-                    <td> @serviceInfo.Name</td>
-@*                    <td> @serviceInfo.MainCost</td>
-                    <td> @serviceInfo.AdditionalCost</td>*@
-                    <td>@serviceInfo.Description</td>
+                    <td> @serviceInfo.ServiceTypeName</td>
+                    @*                    <td> @serviceInfo.MainCost</td>
+                        <td> @serviceInfo.AdditionalCost</td>*@
+                    <td>@serviceInfo.ServiceTypeDescription</td>
                 </tr>
             }
+            <NewServiseCost @ref="addYearCost" Title="Добавить сотимость для года" />
         </tbody>
     </table>
 
 }
 
 @code {
+    NewServiseCost addYearCost;
     List<ServiceInfoDTO> AllService;
 
     protected override async Task OnInitializedAsync()

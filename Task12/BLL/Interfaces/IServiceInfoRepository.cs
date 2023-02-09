@@ -9,5 +9,6 @@ namespace BLL.Interfaces
     public interface IServiceInfoRepository
     {
         public Task<List<ServiceInfoDTO>> GetServicesInfoAsync();
+        public Task<List<ServiceInfoDTO>> GetLastYaerCost();
     }
 }

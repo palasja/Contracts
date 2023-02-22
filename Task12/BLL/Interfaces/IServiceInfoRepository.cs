@@ -10,5 +10,6 @@ namespace BLL.Interfaces
     {
         public Task<List<ServiceInfoDTO>> GetCostByYear(int year = 0);
         public Task<int[]> GetServiceYears();
+        public Task AddNewServicesByYear(List<ServiceInfoDTO> newServices);
     }
 }

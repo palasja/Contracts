@@ -31,9 +31,22 @@ namespace BLL.Services
             int[] servicesYeasrs = null;
             using (ContractContext context = new ContractContext())
             {
-                servicesYeasrs = await context.ServiceCost.AsNoTracking().Select(sc => sc.Year).Distinct().OrderBy(y => y).ToArrayAsync();
+                servicesYeasrs = await context.ServiceCost.AsNoTracking().Select(sc => sc.Year).Distinct().OrderByDescending(y => y).ToArrayAsync();
             }
             return servicesYeasrs;
         }
+
+        public async Task AddNewServicesByYear(List<ServiceInfoDTO> newServices)
+        {
+            var config = new MapperConfiguration(cfg => cfg.CreateMap<ServiceInfoDTO, ServiceCost>());
+            var mapper = new Mapper(config);
+            List<ServiceCost> services = mapper.Map<List<ServiceCost>>(newServices);
+            using (ContractContext context = new ContractContext())
+            {
+                await context.ServiceCost.AddRangeAsync(services);
+                await context.SaveChangesAsync();
+            }
+        }
+
     }
 }

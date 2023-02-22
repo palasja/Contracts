@@ -1,0 +1,72 @@
+﻿@inject IServiceInfoRepository service
+@if (displayChange)
+{
+    <div class="modal-backdrop show"></div>
+
+    <div class="modal fade show" id="calculateModal" tabindex="-1" role="dialog"
+         aria-labelledby="confirmModal" aria-hidden="true" style="display:block">
+
+        <div class="modal-dialog modal-lg" role="form">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@Title</h5>
+                    <button type="button" @onclick="onCancel" class="close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Название</th>
+                                <th>Описание</th>
+                                <th>Год</th>
+                                <th>Месяц</th>
+                                <th>Стоимость</th>
+                                <th>Доп. место</th>
+                                <th>>5 мест</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var service in serviceList)
+                            {
+                            <tr>
+                                <td>@service.ServiceTypeName</td>
+                                <td>@service.ServiceTypeDescription</td>
+                                <td>@service.Year</td>
+                                <td>@service.Month</td>
+                                <td>@service.MainCost</td>
+                                <td>@service.AdditionalCost</td>
+                                <td>@service.More5Cost</td>
+                            </tr>
+                            }
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code
+{
+    bool displayChange = false;
+    [Parameter] public EventCallback onCancel { get; set; }
+    @*[Parameter] public EventCallback onAction { get; set; }
+        [Parameter] public bool isChange { get; set; } = false;*@
+[Parameter] public List<ServiceInfoDTO> serviceList { get; set; } = new List<ServiceInfoDTO>();
+[Parameter] public string Title { get; set; }
+
+protected override async Task OnInitializedAsync()
+{
+    int[] maxYear = await service.GetServiceYears();
+    serviceList = await service.GetCostByYear(maxYear[0]);
+}
+
+public void Hide()
+{
+    displayChange = false;
+    serviceList = new List<ServiceInfoDTO>();
+}
+
+public void Show() => displayChange = true;
+}

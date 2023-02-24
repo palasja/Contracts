@@ -13,8 +13,8 @@ namespace DAL.ModelsDAL.Serivces
         public int ServerCount { get; set; }
         [DefaultValue(0)]
         public int WorkplaceCount { get; set; }
-        public ServiceInfo ServiceInfo { get; set; }
-        public int ServiceInfoId { get; set; }
+        public ServiceType ServiceType { get; set; }
+        public int ServiceTypeId { get; set; }
         public Contract Contract { get; set; }
         public int ContractId { get; set; }
     }

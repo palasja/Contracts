@@ -75,16 +75,24 @@ namespace BLL.Services
             const double INCOME_TAX = 13;
             const double PF = 1;
             List<Contract> contracts;
+            List<ServiceCost> costContracts;
             using (ContractContext context = new ContractContext())
             {
                 // This Is filter contract on crossing date. If contract started and ended before filter it skip
-                contracts = await context.Contracts.Where(c => c.Organization.AreaId == areaId).Include(c => c.ServicesHardware).ThenInclude(sh => sh.ServiceInfo).
+                /* before change to cost, remove if all work
+                                 contracts = await context.Contracts.Where(c => c.Organization.AreaId == areaId).Include(c => c.ServicesHardware).ThenInclude(sh => sh.ServiceInfo).
                      Include(c => c.ServicesSoftware).ThenInclude(sh => sh.ServiceInfo).
                      Where((c => (!((startFilter <= c.StartDate && endFilter <= c.StartDate) || (startFilter >= (c.EndDate == null ? endFilter : c.EndDate) && endFilter >= (c.EndDate == null ? endFilter : c.EndDate)))))).
                      AsNoTracking().ToListAsync();
+                 */
+                contracts = await context.Contracts.Where(c => c.Organization.AreaId == areaId).Include(c => c.ServicesHardware).
+                     Include(c => c.ServicesSoftware).
+                     Where((c => (!((startFilter <= c.StartDate && endFilter <= c.StartDate) || (startFilter >= (c.EndDate == null ? endFilter : c.EndDate) && endFilter >= (c.EndDate == null ? endFilter : c.EndDate)))))).
+                     AsNoTracking().ToListAsync();
+                costContracts = await context.ServiceCost.Where(sc => sc.Year >= startFilter.Year && sc.Year <= endFilter.Year).AsNoTracking().ToListAsync();
             }
-            fullCost += GetCostHardware(contracts, startFilter, endFilter);
-            fullCost += GetCostSoftware(contracts, startFilter, endFilter);
+            fullCost += GetCostHardware(contracts, costContracts, startFilter, endFilter);
+            fullCost += GetCostSoftware(contracts, costContracts, startFilter, endFilter);
             double afterNDS = fullCost * ((100 - NDS) / 100);
             double afterWithold = afterNDS * ((100 - (INCOME_TAX + PF)) / 100);
             return Math.Round(afterWithold * MY_PERCENT, MidpointRounding.AwayFromZero) / 100;
@@ -107,18 +115,19 @@ namespace BLL.Services
         /// <param name="startFilter"></param>
         /// <param name="endFilter"></param>
         /// <returns>Полная стоимость договоров</returns>
-        private double GetCostSoftware(List<Contract> contracts, DateTime startFilter, DateTime endFilter)
+        private double GetCostSoftware(List<Contract> contracts, List<ServiceCost> costContracts, DateTime startFilter, DateTime endFilter)
         {
             double sum = 0;
+            //contract work 1 year, don't have to delims by years
             foreach (var contract in contracts)
             {
                 var month = GetMonthActionContract(contract, startFilter, endFilter);
                 foreach (var software in contract.ServicesSoftware)
                 {
-                    var serviceInfo = software.ServiceInfo;
+                    var serviceCost = costContracts.FirstOrDefault(cc => cc.Year == contract.StartDate.Year && cc.ServiceTypeId == software.ServiceTypeId);
 
-                    sum += software.MainPlaceCount * serviceInfo.MainCost * month;
-                    sum += software.AdditionalPlaceCount * serviceInfo.AdditionalCost * month;
+                    sum += software.MainPlaceCount * serviceCost.MainCost * month;
+                    sum += software.AdditionalPlaceCount * serviceCost.AdditionalCost * month;
                 }
             }
             return sum;
@@ -130,7 +139,7 @@ namespace BLL.Services
         /// <param name="startFilter"></param>
         /// <param name="endFilter"></param>
         /// <returns>Полная стоимость договоров</returns>
-        private double GetCostHardware(List<Contract> contracts, DateTime startFilter, DateTime endFilter)
+        private double GetCostHardware(List<Contract> contracts, List<ServiceCost> costContracts, DateTime startFilter, DateTime endFilter)
         {
             double sum = 0;
             foreach (var contract in contracts)
@@ -138,10 +147,10 @@ namespace BLL.Services
                 var month = GetMonthActionContract(contract, startFilter, endFilter);
                 foreach (var software in contract.ServicesHardware)
                 {
-                    var serviceInfo = software.ServiceInfo;
+                    var serviceCost = costContracts.FirstOrDefault(cc => cc.Year == contract.StartDate.Year && cc.ServiceTypeId == software.ServiceTypeId);
 
-                    sum += software.ServerCount * serviceInfo.MainCost * month;
-                    sum += software.WorkplaceCount * serviceInfo.AdditionalCost * month;
+                    sum += software.ServerCount * serviceCost.MainCost * month;
+                    sum += software.WorkplaceCount * serviceCost.AdditionalCost * month;
                 }
             }
             return sum;
@@ -167,12 +176,12 @@ namespace BLL.Services
             List<HardwareForInfo> hardwares = new List<HardwareForInfo>();
             using (var context = new ContractContext())
             {
-                hardwares = await context.ServiceHardwares.Where(hard => hard.ContractId == contract.Id).Include(info => info.ServiceInfo).
+                hardwares = await context.ServiceHardwares.Where(hard => hard.ContractId == contract.Id).Include(info => info.ServiceType).
                    Select(item => new HardwareForInfo()
                     {
                         ServerCount = item.ServerCount,
                         WorkplaceCount = item.WorkplaceCount,
-                        ServiceInfoName = item.ServiceInfo.Name
+                        ServiceInfoName = item.ServiceType.Name
                     }).AsNoTracking().ToListAsync();
             }
             return hardwares;
@@ -183,12 +192,12 @@ namespace BLL.Services
             List<SoftwareForInfo> softwares = new List<SoftwareForInfo>();
             using (var context = new ContractContext())
             {
-                softwares = await context.ServiceSoftwares.Where(hard => hard.ContractId == contract.Id).Include(info => info.ServiceInfo).
+                softwares = await context.ServiceSoftwares.Where(hard => hard.ContractId == contract.Id).Include(info => info.ServiceType).
                      Select(item => new SoftwareForInfo()
                     {
                         MainPlaceCount = item.MainPlaceCount,
                         AdditionalPlaceCount = item.AdditionalPlaceCount,
-                        ServiceInfoName = item.ServiceInfo.Name
+                        ServiceInfoName = item.ServiceType.Name
                     }).AsNoTracking().ToListAsync();
             }
             return softwares;

@@ -6,7 +6,7 @@ using System.Text;
 
 namespace DAL.ModelsDAL.Serivces
 {
-    public class ServiceInfo
+    public class ServiceType
     {
         public int Id { get; set; }
         /// <summary>
@@ -28,6 +28,7 @@ namespace DAL.ModelsDAL.Serivces
         /// Стоимость свыше 5 дополнительных мест
         /// </summary>
         public double More5Cost { get; set; } = 0;
+        
         public string? Description { get; set; }
     }
 }

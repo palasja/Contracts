@@ -13,12 +13,12 @@ namespace BLL.Services
     {
         public async Task<List<ServiceInfoDTO>> GetServicesInfoAsync()
         {
-            List<ServiceInfo> services = new List<ServiceInfo>();
-            var config = new MapperConfiguration(cfg => cfg.CreateMap<ServiceInfo, ServiceInfoDTO>());
+            List<ServiceType> services = new List<ServiceType>();
+            var config = new MapperConfiguration(cfg => cfg.CreateMap<ServiceType, ServiceInfoDTO>());
             var mapper = new Mapper(config);
             using (ContractContext context = new ContractContext())
             {
-                services = await context.ServiceInfo.AsNoTracking().ToListAsync();
+                services = await context.ServiceType.AsNoTracking().ToListAsync();
             }
             return mapper.Map<List<ServiceInfoDTO>>(services);
         }

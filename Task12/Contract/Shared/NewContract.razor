@@ -88,8 +88,6 @@
                         </div>
                     </EditForm>
                 </div>
-
-
             </div>
         </div>
     </div>
@@ -118,7 +116,7 @@
     protected override async Task OnInitializedAsync()
     {
         Organizations = await organizationService.GetOrganizationOnAreaAsync(AreaId);
-        ServicesInfo = await serviceInfoService.GetServicesInfoAsync();
+        ServicesInfo = await serviceInfoService.GetCostByYear();
         Contract.StartDate = DateTime.Now;
         Contract.EndDate = null;
     }

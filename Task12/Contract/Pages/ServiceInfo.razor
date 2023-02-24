@@ -6,45 +6,84 @@
 {
     <p><em>Loading...</em></p>
 }
-else if (AllService.Count == 0)
-{
-    <p><em>У организации нет контрактов</em></p>
-}
 else
 {
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Наименование</th>
-@*                <th>Осн место\Сервер</th>
-                <th>Доп. место\Раб. место</th>*@
-                <th>Описание</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var serviceInfo in AllService)
-            {
+    <div class="row">
+        <div class="col col-3 m-3">
+            <button class="btn btn-light m-3" @onclick="() => newServiceCost.Show()">Добавить</button>
+        </div>
+        <div class="col col-3">
+            <select class="form-select form-select-sm w-100" @onchange="FiltredByYaer">
+                @foreach (var year in Years)
+                {
+                    <option>@year</option>
+                }
+            </select>
+        </div>
+    </div>
+    if (AllService.Count == 0)
+    {
+        <div class="row">
+            <div class="col col-3 m-3">
+                <p><em>Для текущего года нет стоимости(@DateTime.Now.Year)</em></p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <table class="table">
+            <thead>
                 <tr>
-                    <td> @serviceInfo.Id</td>
-                    <td> @serviceInfo.Name</td>
-@*                    <td> @serviceInfo.MainCost</td>
-                    <td> @serviceInfo.AdditionalCost</td>*@
-                    <td>@serviceInfo.Description</td>
+                    <th>Наименование</th>
+                    <th>Осн место\Сервер</th>
+                    <th>Доп. место\Раб. место</th>
+                    <th>>5 мест</th>
+                    <th>Описание</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var serviceInfo in AllService)
+                {
+                    <tr>
+                        <td> @serviceInfo.ServiceTypeName</td>
+                        <td> @serviceInfo.MainCost</td>
+                        <td> @serviceInfo.AdditionalCost</td>
+                        <td> @serviceInfo.More5Cost</td>
+                        <td>@serviceInfo.ServiceTypeDescription</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
 
+    }
+    <NewServiceCost @ref="newServiceCost" Title="Добавить сотимость для года" onCancel="() => newServiceCost.Hide()" onAction="SaveServices" />
 }
 
 @code {
+    NewServiceCost newServiceCost;
     List<ServiceInfoDTO> AllService;
+    int[] Years;
 
     protected override async Task OnInitializedAsync()
     {
-        AllService = await serviceInfoService.GetServicesInfoAsync();
+        AllService = await serviceInfoService.GetCostByYear();
+        Years = await serviceInfoService.GetServiceYears();
 
     }
+    async Task FiltredByYaer(ChangeEventArgs e)
+    {
+        int year = int.Parse(e.Value.ToString());
+        AllService = await serviceInfoService.GetCostByYear(year);
+    }
 
+    public async Task SaveServices()
+    {
+        foreach (var service in newServiceCost.serviceList)
+        {
+            service.Year = newServiceCost.year;
+            service.Month = newServiceCost.month;
+        }
+        await serviceInfoService.AddNewServicesByYear(newServiceCost.serviceList);
+        newServiceCost.Hide();
+    }
 }

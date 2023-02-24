@@ -17,7 +17,7 @@ namespace DAL.ModelsDAL.Serivces
         /// <summary>
         /// Стоимость основного места/сервера
         /// </summary>
-        [Required]
+/*        [Required]
         public double MainCost { get; set; }
         /// <summary>
         /// Стоимость дополнительного места/сервера
@@ -27,7 +27,7 @@ namespace DAL.ModelsDAL.Serivces
         /// <summary>
         /// Стоимость свыше 5 дополнительных мест
         /// </summary>
-        public double More5Cost { get; set; } = 0;
+        public double More5Cost { get; set; } = 0;*/
         
         public string? Description { get; set; }
     }
